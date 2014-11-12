@@ -15,7 +15,8 @@ var colors = ['rgb(228,26,28)','rgb(55,126,184)','rgb(77,175,74)','rgb(152,78,16
 mapDiv.height($(window).height() - mapDiv.offset().top - $('#credits').height() - 5)
     .width($(window).width() - $('#sidebar').width);
 L.tileLayer('https://{s}.tiles.mapbox.com/v3/kcivey.i8d7ca3k/{z}/{x}/{y}.png', {
-    attribution: '<a href="http://www.mapbox.com/about/maps/" target="_blank">Terms &amp; Feedback</a>'
+    attribution: '<a href="http://www.mapbox.com/about/maps/" target="_blank">Terms &amp; Feedback</a>',
+    opacity: 0.5
 }).addTo(map);
 
 $.ajax({
@@ -38,17 +39,7 @@ $.ajax({
     });
     contestSelect.append($.map(contestNames.sort(), function (name) {
         return $('<option/>').text(name);
-    })).on('change', function () {
-        currentContest = $(this).val();
-        var candidates = candidatesByContest[currentContest];
-        candidateSelect.empty().append(
-            '<option value="">- Select a candidate -</option>',
-            $.map(candidates, function (name) {
-                return $('<option/>').text(name);
-            })
-        );
-        candidateColors = {};
-    }).trigger('change');
+    }));
     $.ajax({
         url: 'precincts.json',
         dataType: 'json'
@@ -62,13 +53,40 @@ function handlePrecinctJson(geoJson) {
         voteScaleMax = 3000,
         topPrecincts = {},
         currentLayer;
+
+    contestSelect.on('change', function () {
+        console.log('contest change');
+        currentContest = $(this).val();
+        var candidates = candidatesByContest[currentContest];
+        candidateSelect.empty()
+            .append(
+                '<option value="">- Select a candidate -</option>',
+                $.map(candidates, function (name) {
+                    return $('<option/>').text(name);
+                })
+            )
+            .val('').trigger('change');
+        $('[name=layer]', layerRadioDiv).val('Precinct winners').find('input:checked').trigger('click');
+        candidateColors = {};
+        candidates.forEach(function (name) {
+            topPrecincts[name] = $.map(_.sortBy(geoJson.features, function (feature) {
+                return properties[feature.id][currentContest] ? properties[feature.id][currentContest].votes[name] : 0;
+            }).reverse().slice(0, 20), function (feature) { return feature.id; });
+        });
+    }).trigger('change');
     layerOptions.onEachFeature = function (feature, layer) {
         layer.bindPopup(getPopupHtml(feature));
     };
     layerOptions.style = layerStyles['Precinct winners'] =
         function (feature) {
-            var data = properties[feature.id][currentContest],
-                voteList = data.votes,
+            var data = properties[feature.id][currentContest];
+            if (!data) {
+                return {
+                    weight: 0,
+                    fillOpacity: 0
+                };
+            }
+            var voteList = data.votes,
                 winner = getWinner(data),
                 total = getTotal(data),
                 majority = voteList[winner] / total > 0.5;
@@ -105,9 +123,6 @@ function handlePrecinctJson(geoJson) {
             color: 'white'
         };
     };
-    topPrecincts[currentCandidate] = $.map(_.sortBy(geoJson.features, function (feature) {
-        return properties[feature.id][currentContest].votes[currentCandidate];
-    }).reverse().slice(0, 20), function (feature) { return feature.id; });
     layerStyles['top 20 precincts'] = function (feature) {
         return {
             fillColor: 'black',
@@ -127,25 +142,20 @@ function handlePrecinctJson(geoJson) {
         };
     };
     candidateSelect.on('change', function () {
+        console.log('candidate change');
         currentCandidate = $(this).val();
-        layerRadioDiv.html(
+        layerRadioDiv.empty().append(
             $.map(layerStyles, function (style, name) {
                 return '<label><input type="radio" name="layer" value="' +
                     name + '"/> ' + name + '</label><br/>';
             }),
             '<label><input type="radio" name="layer" value="none"/> ' +
                 'No overlay</label>'
-        ).find('input:checked').trigger('click');
+        ).find('input').eq(0).trigger('click');
     });
-    controlsDiv.append(
-            $.map(layerStyles, function (style, name) {
-                return '<label><input type="radio" name="layer" value="' +
-                    name + '"/> ' + name + '</label><br/>';
-            }),
-            '<label><input type="radio" name="layer" value="none"/> ' +
-                'No overlay</label>'
-        )
+    controlsDiv
         .on('click', 'input', function () {
+            console.log('layer change');
             var name = this.value;
             if (currentLayer) {
                 map.removeLayer(currentLayer);
@@ -157,19 +167,19 @@ function handlePrecinctJson(geoJson) {
                 layerOptions.style = layerStyles[name];
                 currentLayer = L.geoJson(geoJson, layerOptions).addTo(map);
             }
+            $('#legend-1').empty().append(
+                $.map(candidateColors, function (color, candidate) {
+                    return '<div class="color-block" style="background-color: ' +
+                        color + ';"></div> ' + candidate + '<br/>';
+                })
+            );
             $('#explanation-1').toggle(name == 'Precinct winners');
             $('#explanation-2').toggle(/ %$/.test(name));
             $('#explanation-3').toggle(/ votes$/.test(name));
             $('#explanation-4').toggle(/^Where/.test(name));
             $('#explanation-5').toggle(/ precincts$/.test(name));
-        })
-        .find('input').eq(0).prop('checked', true);
-    $('#legend-1').append(
-        $.map(candidateColors, function (color, candidate) {
-            return '<div class="color-block" style="background-color: ' +
-                color + ';"></div> ' + candidate + '<br/>';
-        })
-    );
+        });
+    contestSelect.trigger('change');
     $('#legend-2').append(
         $.map(_.range(0, 6), function (i) {
             return '<div class="color-block gray" style="background-color: ' +
@@ -226,8 +236,11 @@ function getTotal(data) {
 
 function getPopupHtml(feature) {
     var precinct = feature.id,
-        data = properties[precinct][currentContest],
-        voteList = _.clone(data.votes),
+        data = properties[precinct][currentContest];
+    if (!data) {
+        return '';
+    }
+    var voteList = _.clone(data.votes),
         winner = getWinner(data),
         total = getTotal(data),
         candidates = _.keys(voteList).sort(),
