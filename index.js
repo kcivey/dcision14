@@ -146,8 +146,9 @@ function handlePrecinctJson(geoJson) {
         currentCandidate = $(this).val();
         layerRadioDiv.empty().append(
             $.map(layerStyles, function (style, name) {
-                return '<label><input type="radio" name="layer" value="' +
-                    name + '"/> ' + name + '</label><br/>';
+                var display = /^[A-Z]/.test(name) ? name : (currentCandidate + ' ' + name);
+                return /^ /.test(display) ? '' : ('<label><input type="radio" name="layer" value="' +
+                    name + '"/> ' + display + '</label><br/>');
             }),
             '<label><input type="radio" name="layer" value="none"/> ' +
                 'No overlay</label>'
@@ -174,8 +175,8 @@ function handlePrecinctJson(geoJson) {
                 })
             );
             $('#explanation-1').toggle(name == 'Precinct winners');
-            $('#explanation-2').toggle(/ %$/.test(name));
-            $('#explanation-3').toggle(/ votes$/.test(name));
+            $('#explanation-2').toggle(/%$/.test(name));
+            $('#explanation-3').toggle(/votes$/.test(name));
             $('#explanation-4').toggle(/^Where/.test(name));
             $('#explanation-5').toggle(/ precincts$/.test(name));
         });
