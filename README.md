@@ -1,6 +1,6 @@
-dcision13
+dcision14
 =========
 
-Analysis of votes of 23 Apr 2013 special election in Washington, DC.
+Analysis of votes of 4 Nov 2014 general election in Washington, DC.
 
-See http://kcivey.github.io/dcision13/
+See http://kcivey.github.io/dcision14/
