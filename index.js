@@ -66,7 +66,7 @@ function handlePrecinctJson(geoJson) {
                 })
             )
             .val('').trigger('change');
-        $('[name=layer]', layerRadioDiv).val('Precinct winners').find('input:checked').trigger('click');
+        $('[name=layer]', layerRadioDiv).find('input:eq(0)').trigger('click');
         candidateColors = {};
         candidates.forEach(function (name) {
             topPrecincts[name] = $.map(_.sortBy(geoJson.features, function (feature) {
@@ -155,7 +155,7 @@ function handlePrecinctJson(geoJson) {
     });
     controlsDiv
         .on('click', 'input', function () {
-            console.log('layer change');
+            console.log('layer change', this.value);
             var name = this.value;
             if (currentLayer) {
                 map.removeLayer(currentLayer);
