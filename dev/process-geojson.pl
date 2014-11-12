@@ -25,6 +25,8 @@ while (<>) {
     $key1 =~ s/.* //;
     $key1 = ucfirst lc $key1;
     $key1 =~ s/-paul/-Paul/;
+    $key1 = "[$key1]" if $key1 eq 'Write-in';
+    $key1 =~ s/^Labeaume/LaBeaume/;
     my $key2 = $r{precinct_number} + 0;
     if ($ward{$r{precinct_number}} && $ward{$r{precinct_number}} != $r{ward}) {
         warn "Precinct $r{precinct_number} is Ward $ward{$r{precinct_number}}" .
