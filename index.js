@@ -224,6 +224,9 @@ function getWinner(data) {
 }
 
 function getTotal(data) {
+    if (!data) {
+        return 0;
+    }
     if (!data.total) {
         data.total = _.reduce(
             _.values(data.votes),
