@@ -10,15 +10,9 @@ var colors = {
     map = L.map('map');
 mapDiv.height($(window).height() - mapDiv.offset().top - $('#credits').height() - 5)
     .width($(window).width() - $('#sidebar').width);
-L.tileLayer(
-    'http://{s}.tile.cloudmade.com/{key}/{style}/256/{z}/{x}/{y}.png',
-    {
-        key: '0c1c82bc050546ed93950f730c5a9366',
-        style: 998,
-        attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>',
-        maxZoom: 18
-    }
-).addTo(map);
+L.tileLayer('https://{s}.tiles.mapbox.com/v3/kcivey.i8d7ca3k/{z}/{x}/{y}.png', {
+    attribution: '<a href="http://www.mapbox.com/about/maps/" target="_blank">Terms &amp; Feedback</a>'
+}).addTo(map);
 
 $.ajax({
     url: 'dcision13.json',
