@@ -47,6 +47,7 @@ $.ajax({
                 return $('<option/>').text(name);
             })
         );
+        candidateColors = {};
     }).trigger('change');
     $.ajax({
         url: 'precincts.json',
@@ -66,8 +67,7 @@ function handlePrecinctJson(geoJson) {
     };
     layerOptions.style = layerStyles['Precinct winners'] =
         function (feature) {
-            var contest = contestSelect.val(),
-                data = properties[feature.id][contest],
+            var data = properties[feature.id][currentContest],
                 voteList = data.votes,
                 winner = getWinner(data),
                 total = getTotal(data),
@@ -96,7 +96,7 @@ function handlePrecinctJson(geoJson) {
         };
     };
     layerStyles['votes'] = function (feature) {
-        var data = properties[feature.id][contest],
+        var data = properties[feature.id][currentContest],
             voteList = data.votes;
         return {
             fillColor: getGray(voteList[currentCandidate] / voteScaleMax),
@@ -148,7 +148,6 @@ function handlePrecinctJson(geoJson) {
         .on('click', 'input', function () {
             var name = this.value;
             if (currentLayer) {
-                console.log('removing layer');
                 map.removeLayer(currentLayer);
             }
             if (name == 'none') {
