@@ -20,6 +20,10 @@ while (<>) {
     $key0 =~ s/(\w+)/\u$1/g;
     $key0 =~ s/(?<= )(Of|The)(?= )/\L$1/g;
     $key0 =~ s/(?: of the)? District of Columbia//;
+    $key0 =~ s/One/1/;
+    $key0 =~ s/Three/3/;
+    $key0 =~ s/Five/5/;
+    $key0 =~ s/Six/6/;
     my $key1 = $r{candidate};
     $key1 =~ s/ INITIATIVE 71//;
     $key1 =~ s/.* //;
