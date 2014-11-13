@@ -58,6 +58,7 @@ function handlePrecinctJson(geoJson) {
         console.log('contest change');
         currentContest = $(this).val();
         var candidates = candidatesByContest[currentContest];
+        candidateColors = {};
         candidateSelect.empty()
             .append(
                 '<option value="">- Select a candidate -</option>',
@@ -67,7 +68,6 @@ function handlePrecinctJson(geoJson) {
             )
             .val('').trigger('change');
         $('[name=layer]', layerRadioDiv).find('input:eq(0)').trigger('click');
-        candidateColors = {};
         candidates.forEach(function (name) {
             topPrecincts[name] = $.map(_.sortBy(geoJson.features, function (feature) {
                 return properties[feature.id][currentContest] ? properties[feature.id][currentContest].votes[name] : 0;
