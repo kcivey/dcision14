@@ -102,6 +102,29 @@ function handlePrecinctJson(geoJson) {
         };
     currentLayer = L.geoJson(geoJson, layerOptions).addTo(map);
     map.fitBounds(currentLayer.getBounds());
+    layerStyles['Second place'] =
+        function (feature) {
+            var data = properties[feature.id][currentContest];
+            if (!data) {
+                return {
+                    weight: 0,
+                    fillOpacity: 0
+                };
+            }
+            var voteList = data.votes,
+                second = getSecond(data),
+                total = getTotal(data),
+                majority = voteList[second] / total > 0.5;
+            if (!candidateColors[second]) {
+                candidateColors[second] = colors[_.keys(candidateColors).length];
+            }
+            return {
+                fillColor: candidateColors[second],
+                fillOpacity: majority ? 0.8 : 0.6,
+                weight: 1,
+                color: 'white'
+            };
+        };
     layerStyles['%'] = function (feature) {
         var data = properties[feature.id][currentContest];
         if (!data) {
@@ -230,16 +253,17 @@ function getGray(fraction) {
 
 function getWinner(data) {
     var voteList = data.votes,
-        winner;
-    if (!data.winner) {
-        $.each(voteList, function (candidate, votes) {
-            if (!winner || votes > voteList[winner]) {
-                winner = candidate;
-            }
+        candidates = _.keys(voteList).sort(function (a, b) {
+            return voteList[b] - voteList[a];
         });
-        data.winner = winner;
-    }
+    data.winner = candidates[0];
+    data.second = candidates[1];
     return data.winner;
+}
+
+function getSecond(data) {
+    getWinner(data);
+    return data.second;
 }
 
 function getTotal(data) {
