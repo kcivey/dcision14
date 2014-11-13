@@ -103,8 +103,14 @@ function handlePrecinctJson(geoJson) {
     currentLayer = L.geoJson(geoJson, layerOptions).addTo(map);
     map.fitBounds(currentLayer.getBounds());
     layerStyles['%'] = function (feature) {
-        var data = properties[feature.id][currentContest],
-            voteList = data.votes,
+        var data = properties[feature.id][currentContest];
+        if (!data) {
+            return {
+                weight: 0,
+                fillOpacity: 0
+            };
+        }
+        var voteList = data.votes,
             total = getTotal(data);
         return {
             fillColor: getGray(voteList[currentCandidate] / total),
@@ -114,8 +120,14 @@ function handlePrecinctJson(geoJson) {
         };
     };
     layerStyles['votes'] = function (feature) {
-        var data = properties[feature.id][currentContest],
-            voteList = data.votes;
+        var data = properties[feature.id][currentContest];
+        if (!data) {
+            return {
+                weight: 0,
+                fillOpacity: 0
+            };
+        }
+        var voteList = data.votes;
         return {
             fillColor: getGray(voteList[currentCandidate] / voteScaleMax),
             fillOpacity: 1,
@@ -132,8 +144,14 @@ function handlePrecinctJson(geoJson) {
         };
     };
     layerStyles['Where the votes were'] = function (feature) {
-        var data = properties[feature.id][currentContest],
-            total = getTotal(data);
+        var data = properties[feature.id][currentContest];
+        if (!data) {
+            return {
+                weight: 0,
+                fillOpacity: 0
+            };
+        }
+        var total = getTotal(data);
         return {
             fillColor: getGray(total / voteScaleMax),
             fillOpacity: 1,
