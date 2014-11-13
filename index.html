@@ -12,10 +12,11 @@
   .leaflet-popup-content h4 { margin-bottom: 2px; }
   #map { height: 400px; padding: 0; margin-right: 6px; }
   #sidebar { float: right; width: 25%; }
-  #controls { background-color: #ddd; padding: 10px; margin-bottom: 10px; }
+  #controls { background-color: #ddd; padding: 10px; }
   .color-block { height: 12px; width: 12px; display: inline-block; opacity: 0.6; }
   .gray { opacity: 1; border: 1px solid black; }
   #credits > p { margin-top: 2px; }
+  #explanations { padding: 10px; }
 </style>
 <script src="jquery-1.11.0.min.js"></script>
 <script src="leaflet.js"></script>
@@ -31,39 +32,41 @@
     <p><select id="candidate"></select></p>
     <div id="layer-radio"></div>
   </div>
-  <div id="explanation-1">
-    <div id="legend-1"></div>
-    <p>Each precinct is colored to indicate which candidate received the most
-    votes there. A more opaque (darker) version of the color is used when the
-    candidate managed to win a majority of the votes in the precinct.</p>
-    <p>The map can be misleading in the same way typical U.S. presidential
-    election maps are, since the area of a precinct is not proportional to the
-    number of voters there. A candidate who wins in densely populated,
-    high-turnout areas will often look worse on the map than a candidate who
-    wins in less dense or low-turnout areas.</p>
-    <p>Click on a precinct to see the vote breakdown.</p>
-  </div>
-  <div id="explanation-2" style="display: none;">
-    <div id="legend-2"></div>
-    <p>Each precinct is shaded to indicate the percentage of the vote that
-    went for the candidate, with darker grays indicating higher percentages.</p>
-    <p>Click on a precinct to see the vote breakdown.</p>
-  </div>
-  <div id="explanation-3" style="display: none;">
-    <div id="legend-3"></div>
-    <p>Each precinct is shaded to indicate the number of votes the candidate
-    received there, with darker grays indicating higher numbers.</p>
-    <p>Click on a precinct to see the vote breakdown.</p>
-  </div>
-  <div id="explanation-4" style="display: none;">
-    <div id="legend-4"></div>
-    <p>Each precinct is shaded to indicate the total number of votes
-    cast there, with darker grays indicating higher numbers.</p>
-    <p>Click on a precinct to see the vote breakdown.</p>
-  </div>
-  <div id="explanation-5" style="display: none;">
-    <p>The 20 precincts that gave the candidate the most votes are colored.</p>
-    <p>Click on a precinct to see the vote breakdown.</p>
+    <div id="explanations">
+    <div id="explanation-1">
+      <div id="legend-1"></div>
+      <p>Each precinct is colored to indicate which candidate received the most
+      votes there. A more opaque (darker) version of the color is used when the
+      candidate managed to win a majority of the votes in the precinct.</p>
+      <p>The map can be misleading in the same way typical U.S. presidential
+      election maps are, since the area of a precinct is not proportional to the
+      number of voters there. A candidate who wins in densely populated,
+      high-turnout areas will often look worse on the map than a candidate who
+      wins in less dense or low-turnout areas.</p>
+      <p>Click on a precinct to see the vote breakdown.</p>
+    </div>
+    <div id="explanation-2" style="display: none;">
+      <div id="legend-2"></div>
+      <p>Each precinct is shaded to indicate the percentage of the vote that
+      went for the candidate, with darker grays indicating higher percentages.</p>
+      <p>Click on a precinct to see the vote breakdown.</p>
+    </div>
+    <div id="explanation-3" style="display: none;">
+      <div id="legend-3"></div>
+      <p>Each precinct is shaded to indicate the number of votes the candidate
+      received there, with darker grays indicating higher numbers.</p>
+      <p>Click on a precinct to see the vote breakdown.</p>
+    </div>
+    <div id="explanation-4" style="display: none;">
+      <div id="legend-4"></div>
+      <p>Each precinct is shaded to indicate the total number of votes
+      cast there, with darker grays indicating higher numbers.</p>
+      <p>Click on a precinct to see the vote breakdown.</p>
+    </div>
+    <div id="explanation-5" style="display: none;">
+      <p>The 20 precincts that gave the candidate the most votes are colored.</p>
+      <p>Click on a precinct to see the vote breakdown.</p>
+    </div>
   </div>
 </div>
 <div id="map"></div>
