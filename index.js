@@ -9,6 +9,7 @@ var colors = ['rgb(228,26,28)','rgb(55,126,184)','rgb(77,175,74)','rgb(152,78,16
     candidatesByContest = {},
     properties = [],
     candidateColors = {},
+    allowHashUpdate = false,
     currentContest,
     currentCandidate;
 
@@ -67,13 +68,12 @@ function handlePrecinctJson(geoJson) {
                 })
             )
             .val('').trigger('change');
-        $('[name=layer]', layerRadioDiv).find('input:eq(0)').trigger('click');
         candidates.forEach(function (name) {
             topPrecincts[name] = $.map(_.sortBy(geoJson.features, function (feature) {
                 return properties[feature.id][currentContest] ? properties[feature.id][currentContest].votes[name] : 0;
             }).reverse().slice(0, 20), function (feature) { return feature.id; });
         });
-    }).trigger('change');
+    });
     layerOptions.onEachFeature = function (feature, layer) {
         layer.bindPopup(getPopupHtml(feature));
     };
@@ -185,6 +185,10 @@ function handlePrecinctJson(geoJson) {
     candidateSelect.on('change', function () {
         console.log('candidate change');
         currentCandidate = $(this).val();
+        var index = $('input:checked', layerRadioDiv).index('#layer-radio input');
+        if (index == -1) {
+            index = 0;
+        }
         layerRadioDiv.empty().append(
             $.map(layerStyles, function (style, name) {
                 var display = /^[A-Z]/.test(name) ? name : (currentCandidate + ' ' + name);
@@ -193,7 +197,8 @@ function handlePrecinctJson(geoJson) {
             }),
             '<label><input type="radio" name="layer" value="none"/> ' +
                 'No overlay</label>'
-        ).find('input').eq(0).trigger('click');
+        );
+        $('input', layerRadioDiv).eq(index).trigger('click');
     });
     controlsDiv
         .on('click', 'input', function () {
@@ -220,8 +225,8 @@ function handlePrecinctJson(geoJson) {
             $('#explanation-3').toggle(/votes$/.test(name));
             $('#explanation-4').toggle(/^Where/.test(name));
             $('#explanation-5').toggle(/ precincts$/.test(name));
+            updateHashFromApp();
         });
-    contestSelect.trigger('change');
     $('#legend-2').append(
         $.map(_.range(0, 6), function (i) {
             return '<div class="color-block gray" style="background-color: ' +
@@ -237,6 +242,7 @@ function handlePrecinctJson(geoJson) {
         })
     );
     $('#legend-4').append($('#legend-3').html());
+    updateAppFromHash()
 }
 
 function getGray(fraction) {
@@ -307,6 +313,25 @@ function getPopupHtml(feature) {
     });
     html += '</table>';
     return html;
+}
+
+function updateHashFromApp() {
+    var hash = contestSelect[0].selectedIndex + '-' + candidateSelect[0].selectedIndex + '-' +
+        $('input:checked', layerRadioDiv).index('#layer-radio input');
+    if (allowHashUpdate && (hash != '0-0-0' || window.location.hash.length > 1)) {
+        window.location.hash = hash;
+    }
+}
+
+function updateAppFromHash() {
+    var state = (window.location.hash.substr(1) || '0-0-0').split('-');
+    if (state.length == 3) {
+        allowHashUpdate = false;
+        $('option', contestSelect).eq(state[0]).prop('selected', true).trigger('change');
+        $('option', candidateSelect).eq(state[1]).prop('selected', true).trigger('change');
+        $('input', layerRadioDiv).eq(state[2]).trigger('click');
+        allowHashUpdate = true;
+    }
 }
 
 });
