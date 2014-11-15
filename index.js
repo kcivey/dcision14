@@ -125,6 +125,23 @@ function handlePrecinctJson(geoJson) {
                 color: 'white'
             };
         };
+    layerStyles['Where the votes were (all candidates)'] = function (feature) {
+        var data = properties[feature.id][currentContest];
+        if (!data) {
+            return {
+                weight: 0,
+                fillOpacity: 0
+            };
+        }
+        var total = getTotal(data);
+        return {
+            fillColor: getGray(total / voteScaleMax),
+            fillOpacity: 1,
+            weight: 1,
+            color: 'white'
+        };
+    };
+    layerStyles['No overlay'] = null;
     layerStyles['%'] = function (feature) {
         var data = properties[feature.id][currentContest];
         if (!data) {
@@ -166,39 +183,29 @@ function handlePrecinctJson(geoJson) {
             color: 'white'
         };
     };
-    layerStyles['Where the votes were'] = function (feature) {
-        var data = properties[feature.id][currentContest];
-        if (!data) {
-            return {
-                weight: 0,
-                fillOpacity: 0
-            };
-        }
-        var total = getTotal(data);
-        return {
-            fillColor: getGray(total / voteScaleMax),
-            fillOpacity: 1,
-            weight: 1,
-            color: 'white'
-        };
-    };
     candidateSelect.on('change', function () {
         console.log('candidate change');
         currentCandidate = $(this).val();
-        var index = $('input:checked', layerRadioDiv).index('#layer-radio input');
+        var index = $('input:checked', layerRadioDiv).index('#layer-radio input'),
+            radioButtons;
         if (index == -1) {
             index = 0;
         }
         layerRadioDiv.empty().append(
             $.map(layerStyles, function (style, name) {
                 var display = /^[A-Z]/.test(name) ? name : (currentCandidate + ' ' + name);
+                if (name == 'No overlay') {
+                    name = 'none';
+                }
                 return /^ /.test(display) ? '' : ('<label><input type="radio" name="layer" value="' +
                     name + '"/> ' + display + '</label><br/>');
-            }),
-            '<label><input type="radio" name="layer" value="none"/> ' +
-                'No overlay</label>'
+            })
         );
-        $('input', layerRadioDiv).eq(index).trigger('click');
+        radioButtons = $('input', layerRadioDiv);
+        if (index >= radioButtons.length) {
+            index = 0;
+        }
+        radioButtons.eq(index).trigger('click');
     });
     controlsDiv
         .on('click', 'input', function () {
