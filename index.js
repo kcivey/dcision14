@@ -56,7 +56,6 @@ function handlePrecinctJson(geoJson) {
         currentLayer;
 
     contestSelect.on('change', function () {
-        console.log('contest change');
         currentContest = $(this).val();
         var candidates = candidatesByContest[currentContest];
         candidateColors = {};
@@ -184,7 +183,6 @@ function handlePrecinctJson(geoJson) {
         };
     };
     candidateSelect.on('change', function () {
-        console.log('candidate change');
         currentCandidate = $(this).val();
         var index = $('input:checked', layerRadioDiv).index('#layer-radio input'),
             radioButtons;
@@ -202,14 +200,13 @@ function handlePrecinctJson(geoJson) {
             })
         );
         radioButtons = $('input', layerRadioDiv);
-        if (index >= radioButtons.length) {
+        if (!index || index >= radioButtons.length) {
             index = 0;
         }
         radioButtons.eq(index).trigger('click');
     });
     controlsDiv
         .on('click', 'input', function () {
-            console.log('layer change', this.value);
             var name = this.value;
             if (currentLayer) {
                 map.removeLayer(currentLayer);
@@ -221,7 +218,7 @@ function handlePrecinctJson(geoJson) {
                 layerOptions.style = layerStyles[name];
                 currentLayer = L.geoJson(geoJson, layerOptions).addTo(map);
             }
-            $('#legend-1').empty().append(
+            $('#legend-1, #legend-6').empty().append(
                 $.map(candidateColors, function (color, candidate) {
                     return '<div class="color-block" style="background-color: ' +
                         color + ';"></div> ' + candidate + '<br/>';
@@ -232,7 +229,8 @@ function handlePrecinctJson(geoJson) {
             $('#explanation-3').toggle(/votes$/.test(name));
             $('#explanation-4').toggle(/^Where/.test(name));
             $('#explanation-5').toggle(/ precincts$/.test(name));
-            updateHashFromApp();
+            $('#explanation-6').toggle(/^Second/.test(name));
+            setTimeout(updateHashFromApp, 300); // delay so radio button has time to be checked
         });
     $('#legend-2').append(
         $.map(_.range(0, 6), function (i) {
