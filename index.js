@@ -207,7 +207,8 @@ function handlePrecinctJson(geoJson) {
     });
     controlsDiv
         .on('click', 'input', function () {
-            var name = this.value;
+            var name = this.value,
+                subtitle = currentContest + '<br>' + $(this).closest('label').text();
             if (currentLayer) {
                 map.removeLayer(currentLayer);
             }
@@ -218,6 +219,8 @@ function handlePrecinctJson(geoJson) {
                 layerOptions.style = layerStyles[name];
                 currentLayer = L.geoJson(geoJson, layerOptions).addTo(map);
             }
+            $('#subtitle').remove();
+            $('<div/>').attr('id', 'subtitle').html(subtitle).appendTo(mapDiv);
             $('#legend-1, #legend-6').empty().append(
                 $.map(candidateColors, function (color, candidate) {
                     return '<div class="color-block" style="background-color: ' +
