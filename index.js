@@ -10,7 +10,7 @@ var colors = ['rgb(228,26,28)','rgb(55,126,184)','rgb(77,175,74)','rgb(152,78,16
     properties = [],
     candidateColors = {},
     allowHashUpdate = false,
-    subtitleControl,
+    subtitleControl = L.control({position: 'topright'}),
     currentContest,
     currentCandidate;
 
@@ -20,39 +20,34 @@ L.tileLayer('https://{s}.tiles.mapbox.com/v3/kcivey.i8d7ca3k/{z}/{x}/{y}.png', {
     attribution: '<a href="http://www.mapbox.com/about/maps/" target="_blank">Terms &amp; Feedback</a>',
     opacity: 0.5
 }).addTo(map);
+subtitleControl.onAdd = function () {
+    return L.DomUtil.create('div', 'subtitle');
+};
+subtitleControl.addTo(map);
 
-$.ajax({
-    url: 'results.json',
-    dataType: 'json'
-}).then(function (results) {
-    var contestNames = [],
-        candidateSelect = $('#candidate');
-    results.forEach(function (data, i) {
-        if (data) {
-            _.each(data, function (data, contestName) {
-                if (!properties[i]) {
-                    properties[i] = {};
+$.getJSON('results.json').then(handleResultsJson);
+
+function handleResultsJson(results) {
+    var contestNames = [];
+    results.forEach(function (precinctData, precinct) {
+        if (precinctData) {
+            if (!properties[precinct]) {
+                properties[precinct] = {};
+            }
+            _.each(precinctData, function (contestData, contestName) {
+                properties[precinct][contestName] = {votes: contestData};
+                if (!candidatesByContest[contestName]) {
+                    candidatesByContest[contestName] = _.keys(contestData).sort();
                 }
-                properties[i][contestName] = {votes: data};
-                candidatesByContest[contestName] = _.keys(data).sort();
             });
-            contestNames = _.union(contestNames, _.keys(data));
+            contestNames = _.union(contestNames, _.keys(precinctData));
         }
     });
     contestSelect.append($.map(contestNames.sort(), function (name) {
         return $('<option/>').text(name);
     }));
-    $.ajax({
-        url: 'precincts.json',
-        dataType: 'json'
-    }).then(handlePrecinctJson);
-});
-
-subtitleControl = L.control({position: 'topright'});
-subtitleControl.onAdd = function () {
-    return L.DomUtil.create('div', 'subtitle');
-};
-subtitleControl.addTo(map);
+    $.getJSON('precincts.json').then(handlePrecinctJson);
+}
 
 function handlePrecinctJson(geoJson) {
     var layerOptions = {},
@@ -256,7 +251,7 @@ function handlePrecinctJson(geoJson) {
         })
     );
     $('#legend-4').append($('#legend-3').html());
-    updateAppFromHash()
+    updateAppFromHash();
 }
 
 function getGray(fraction) {
@@ -318,11 +313,9 @@ function getPopupHtml(feature) {
     $.each(candidates, function (i, candidate) {
         var votes = voteList[candidate],
             percent = _.str.sprintf('%.1f', 100 * votes / total);
-        if (candidate == '[Write-in]') {
-            candidate = '<i>Write-in</i>';
-        }
-        html += (candidate == winner) ? '<tr class="winner">' : '<tr>';
-        html += '<td>' + candidate  + '</td><td class="right">' +
+        candidate = candidate.replace(/\[(.+)\]/, '<i>$1</i>');
+        html += (candidate == winner) ? '<tr class="winner">' : '<tr>' +
+            '<td>' + candidate  + '</td><td class="right">' +
             votes + '</td><td class="right">' + percent + '%</td></tr>';
     });
     html += '</table>';
