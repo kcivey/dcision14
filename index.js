@@ -10,6 +10,7 @@ var colors = ['rgb(228,26,28)','rgb(55,126,184)','rgb(77,175,74)','rgb(152,78,16
     properties = [],
     candidateColors = {},
     allowHashUpdate = false,
+    subtitleControl,
     currentContest,
     currentCandidate;
 
@@ -46,6 +47,12 @@ $.ajax({
         dataType: 'json'
     }).then(handlePrecinctJson);
 });
+
+subtitleControl = L.control({position: 'topright'});
+subtitleControl.onAdd = function () {
+    return L.DomUtil.create('div', 'subtitle');
+};
+subtitleControl.addTo(map);
 
 function handlePrecinctJson(geoJson) {
     var layerOptions = {},
@@ -219,8 +226,7 @@ function handlePrecinctJson(geoJson) {
                 layerOptions.style = layerStyles[name];
                 currentLayer = L.geoJson(geoJson, layerOptions).addTo(map);
             }
-            $('#subtitle').remove();
-            $('<div/>').attr('id', 'subtitle').html(subtitle).appendTo(mapDiv);
+            $('.subtitle').html(subtitle);
             $('#legend-1, #legend-6').empty().append(
                 $.map(candidateColors, function (color, candidate) {
                     return '<div class="color-block" style="background-color: ' +
