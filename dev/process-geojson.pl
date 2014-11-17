@@ -16,8 +16,7 @@ while (<>) {
     next if $r{candidate} =~ /ER VOTES$/ or $r{contest_name} =~ /^ADVISORY NEIGHBORHOOD| TOTAL$/;
     my $key0 = $r{contest_name};
     $key0 =~ s/ - /-/;
-    $key0 = lc $key0;
-    $key0 =~ s/(\w+)/\u$1/g;
+    $key0 =~ s/(\w+)/\u\L$1/g;
     $key0 =~ s/(?<= )(Of|The)(?= )/\L$1/g;
     $key0 =~ s/(?: of the)? District of Columbia//;
     $key0 =~ s/One/1/;
@@ -27,9 +26,8 @@ while (<>) {
     my $key1 = $r{candidate};
     $key1 =~ s/ INITIATIVE 71//;
     $key1 =~ s/.* //;
-    $key1 = ucfirst lc $key1;
-    $key1 =~ s/-paul/-Paul/;
-    $key1 = "[$key1]" if $key1 eq 'Write-in';
+    $key1 =~ s/(\w+)/\u\L$1/g;
+    $key1 = '[Write-in]' if $key1 eq 'Write-In';
     $key1 =~ s/^Labeaume/LaBeaume/;
     my $key2 = $r{precinct_number} + 0;
     if ($ward{$r{precinct_number}} && $ward{$r{precinct_number}} != $r{ward}) {
