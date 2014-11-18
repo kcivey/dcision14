@@ -159,16 +159,17 @@ while (<>) {
     s/^"//; s/"$//;
     my %r;
     @r{@columns} = split /","/;
-    next if $r{candidate} =~ /ER VOTES$/ or $r{contest_name} =~ /^ADVISORY NEIGHBORHOOD/;
+    next if $r{election_name} =~ /primary/i and $r{party} ne 'DEM';
     my $contest = $r{contest_name};
     my $candidate = $r{candidate};
     my $precinct = $r{precinct_number} + 0;
-    if ($contest =~ /- TOTAL/) {
+    if ($contest =~ /- (?:TOTAL|DEMOCRATIC)/) {
         $contest =~ s/ .*//;
         $v[$precinct]{$contest} = $r{votes} + 0;
         next;
     }
     $contest =~ s/ - /-/;
+    $contest =~ s/\s+/ /g;
     $contest =~ s/(\w+)/\u\L$1/g;
     $contest =~ s/(?<= )(Of|The)(?= )/\L$1/g;
     $contest =~ s/(?: of the)? District of Columbia//;
@@ -176,7 +177,9 @@ while (<>) {
     $contest =~ s/Three/3/;
     $contest =~ s/Five/5/;
     $contest =~ s/Six/6/;
+    next if $candidate =~ /ER VOTES$/ or $contest =~ /^Advisory Neighborhood|Committee/;
     $candidate =~ s/ INITIATIVE 71//;
+    $candidate =~ s/,?\s*\b(?:[JS]R\.?|V?I{1,3}|I?V)$//;
     $candidate =~ s/.* //;
     $candidate =~ s/(\w+)/\u\L$1/g;
     $candidate = '[Write-in]' if $candidate eq 'Write-In';
