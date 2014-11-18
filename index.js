@@ -35,9 +35,15 @@ function handleResultsJson(results) {
                 properties[precinct] = {};
             }
             _.each(precinctData, function (contestData, contestName) {
-                properties[precinct][contestName] = {votes: contestData};
-                if (!candidatesByContest[contestName]) {
-                    candidatesByContest[contestName] = _.keys(contestData).sort();
+                if (typeof contestData == 'number') {
+                    properties[precinct][contestName.toLowerCase()] = contestData;
+                    delete precinctData[contestName];
+                }
+                else {
+                    properties[precinct][contestName] = {votes: contestData};
+                    if (!candidatesByContest[contestName]) {
+                        candidatesByContest[contestName] = _.keys(contestData).sort();
+                    }
                 }
             });
             contestNames = _.union(contestNames, _.keys(precinctData));
@@ -142,6 +148,34 @@ function handlePrecinctJson(geoJson) {
             color: 'white'
         };
     };
+    layerOptions.style = layerStyles['Votes per ballot (all candidates)'] =
+        function (feature) {
+            var data = properties[feature.id][currentContest],
+                factor = /^At-Large/.test(currentContest) ? 2 : 1;
+            if (!data) {
+                return {
+                    weight: 0,
+                    fillOpacity: 0
+                };
+            }
+            var votes= getTotal(data) / properties[feature.id].ballots;
+            return {
+                fillColor: getGray((votes / factor - 0.6) / 0.4),
+                fillOpacity: 1,
+                weight: 1,
+                color: 'white'
+            };
+        };
+    layerOptions.style = layerStyles['Turnout % (all contests)'] =
+        function (feature) {
+            var turnout = properties[feature.id].ballots / properties[feature.id].registered;
+            return {
+                fillColor: getGray(turnout),
+                fillOpacity: 1,
+                weight: 1,
+                color: 'white'
+            };
+        };
     layerStyles['No overlay'] = null;
     layerStyles['%'] = function (feature) {
         var data = properties[feature.id][currentContest];
@@ -210,7 +244,11 @@ function handlePrecinctJson(geoJson) {
     controlsDiv
         .on('click', 'input', function () {
             var name = this.value,
-                subtitle = currentContest + '<br>' + $(this).closest('label').text();
+                subtitle = $(this).closest('label').text().trim(),
+                factor = /^At-Large/.test(currentContest) ? 2 : 1;
+            if (!/^Turnout/.test(subtitle)) {
+                subtitle = currentContest + '<br>' + subtitle;
+            }
             if (currentLayer) {
                 map.removeLayer(currentLayer);
             }
@@ -228,21 +266,30 @@ function handlePrecinctJson(geoJson) {
                         color + ';"></div> ' + candidate + '<br/>';
                 })
             );
+            $('#legend-8').empty().append(
+                $.map(_.range(0, 5), function (i) {
+                    return '<div class="color-block gray" style="background-color: ' +
+                        getGray(i / 4) + ';"></div> ' +
+                        (factor * (i * 0.1 + 0.6)).toFixed(1) + ' votes<br/>';
+                })
+            );
             $('#explanation-1').toggle(name == 'Precinct winners');
             $('#explanation-2').toggle(/%$/.test(name));
             $('#explanation-3').toggle(/votes$/.test(name));
             $('#explanation-4').toggle(/^Where/.test(name));
             $('#explanation-5').toggle(/ precincts$/.test(name));
             $('#explanation-6').toggle(/^Second/.test(name));
+            $('#explanation-7').toggle(/^Turnout/.test(name));
+            $('#explanation-8').toggle(/^Votes per/.test(name));
             setTimeout(updateHashFromApp, 300); // delay so radio button has time to be checked
         });
-    $('#legend-2').append(
+    $('#legend-2, #legend-7').append(
         $.map(_.range(0, 6), function (i) {
             return '<div class="color-block gray" style="background-color: ' +
                 getGray(i / 5) + ';"></div> ' + i * 20 + '%<br/>';
         })
     );
-    $('#legend-3').append(
+    $('#legend-3, #legend-4').append(
         $.map(_.range(0, 6), function (i) {
             return '<div class="color-block gray" style="background-color: ' +
                 getGray(i / 5) + ';"></div> ' +
@@ -250,7 +297,6 @@ function handlePrecinctJson(geoJson) {
                 (i == 5 ? '+' : '') + ' votes<br/>';
         })
     );
-    $('#legend-4').append($('#legend-3').html());
     updateAppFromHash();
 }
 
@@ -305,6 +351,8 @@ function getPopupHtml(feature) {
         winner = getWinner(data),
         total = getTotal(data),
         candidates = _.keys(voteList).sort(),
+        turnout = _.str.sprintf('%.1f', 100 * properties[precinct].ballots / properties[precinct].registered),
+        votesPerBallot = _.str.sprintf('%.2f', total / properties[precinct].ballots),
         html = '<h4>Precinct ' + precinct +
             ' (Ward ' + feature.properties.ward + ')</h4>';
     html += '<table class="votes">';
@@ -318,7 +366,12 @@ function getPopupHtml(feature) {
             '<td>' + candidate  + '</td><td class="right">' +
             votes + '</td><td class="right">' + percent + '%</td></tr>';
     });
-    html += '</table>';
+    html += '</table><hr><table class="votes">' +
+        '<tr><td colspan="2">Registered voters</td><td class="right">' + _.str.numberFormat(properties[precinct].registered)  + '</td></tr>' +
+        '<tr><td colspan="2">Ballots</td><td class="right">' + _.str.numberFormat(properties[precinct].ballots)  + '</td></tr>' +
+        '<tr><td colspan="2">Turnout</td><td class="right">' + turnout  + '%</td></tr>' +
+        '<tr><td colspan="2">Votes per ballot</td><td class="right">' + votesPerBallot  + '</td></tr>' +
+        '</table>';
     return html;
 }
 

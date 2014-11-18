@@ -13,29 +13,34 @@ while (<>) {
     s/^"//; s/"$//;
     my %r;
     @r{@columns} = split /","/;
-    next if $r{candidate} =~ /ER VOTES$/ or $r{contest_name} =~ /^ADVISORY NEIGHBORHOOD| TOTAL$/;
-    my $key0 = $r{contest_name};
-    $key0 =~ s/ - /-/;
-    $key0 =~ s/(\w+)/\u\L$1/g;
-    $key0 =~ s/(?<= )(Of|The)(?= )/\L$1/g;
-    $key0 =~ s/(?: of the)? District of Columbia//;
-    $key0 =~ s/One/1/;
-    $key0 =~ s/Three/3/;
-    $key0 =~ s/Five/5/;
-    $key0 =~ s/Six/6/;
-    my $key1 = $r{candidate};
-    $key1 =~ s/ INITIATIVE 71//;
-    $key1 =~ s/.* //;
-    $key1 =~ s/(\w+)/\u\L$1/g;
-    $key1 = '[Write-in]' if $key1 eq 'Write-In';
-    $key1 =~ s/^Labeaume/LaBeaume/;
-    my $key2 = $r{precinct_number} + 0;
+    next if $r{candidate} =~ /ER VOTES$/ or $r{contest_name} =~ /^ADVISORY NEIGHBORHOOD/;
+    my $contest = $r{contest_name};
+    my $candidate = $r{candidate};
+    my $precinct = $r{precinct_number} + 0;
+    if ($contest =~ /- TOTAL/) {
+        $contest =~ s/ .*//;
+        $v[$precinct]{$contest} = $r{votes} + 0;
+        next;
+    }
+    $contest =~ s/ - /-/;
+    $contest =~ s/(\w+)/\u\L$1/g;
+    $contest =~ s/(?<= )(Of|The)(?= )/\L$1/g;
+    $contest =~ s/(?: of the)? District of Columbia//;
+    $contest =~ s/One/1/;
+    $contest =~ s/Three/3/;
+    $contest =~ s/Five/5/;
+    $contest =~ s/Six/6/;
+    $candidate =~ s/ INITIATIVE 71//;
+    $candidate =~ s/.* //;
+    $candidate =~ s/(\w+)/\u\L$1/g;
+    $candidate = '[Write-in]' if $candidate eq 'Write-In';
+    $candidate =~ s/^Labeaume/LaBeaume/;
     if ($ward{$r{precinct_number}} && $ward{$r{precinct_number}} != $r{ward}) {
         warn "Precinct $r{precinct_number} is Ward $ward{$r{precinct_number}}" .
             " and $r{ward}\n";
     }
     $ward{$r{precinct_number}} = $r{ward} + 0;
-    $v[$key2]{$key0}{$key1} = $r{votes} + 0;
+    $v[$precinct]{$contest}{$candidate} = $r{votes} + 0;
 }
 print to_json(\@v, {canonical => 1});
 
