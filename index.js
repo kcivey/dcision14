@@ -364,7 +364,7 @@ function getPopupHtml(feature) {
         candidate = candidate.replace(/\[(.+)\]/, '<i>$1</i>');
         html += (candidate == winner) ? '<tr class="winner">' : '<tr>' +
             '<td>' + candidate  + '</td><td class="right">' +
-            votes + '</td><td class="right">' + percent + '%</td></tr>';
+            _.str.numberFormat(votes) + '</td><td class="right">' + percent + '%</td></tr>';
     });
     html += '</table><hr><table class="votes">' +
         '<tr><td colspan="2">Registered voters</td><td class="right">' + _.str.numberFormat(properties[precinct].registered)  + '</td></tr>' +
