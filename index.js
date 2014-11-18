@@ -354,7 +354,7 @@ function getPopupHtml(feature) {
         turnout = _.str.sprintf('%.1f', 100 * properties[precinct].ballots / properties[precinct].registered),
         votesPerBallot = _.str.sprintf('%.2f', total / properties[precinct].ballots),
         html = '<h4>Precinct ' + precinct +
-            ' (Ward ' + feature.properties.ward + ')</h4>';
+            ' (Ward ' + feature.properties.ward + ')<br>' + feature.properties.name + '</h4>';
     html += '<table class="votes">';
     candidates.push('TOTAL');
     voteList['TOTAL'] = total;
