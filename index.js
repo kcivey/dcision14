@@ -362,7 +362,7 @@ function getPopupHtml(feature) {
         var votes = voteList[candidate],
             percent = _.str.sprintf('%.1f', 100 * votes / total);
         candidate = candidate.replace(/\[(.+)\]/, '<i>$1</i>');
-        html += (candidate == winner) ? '<tr class="winner">' : '<tr>' +
+        html += (candidate == winner ? '<tr class="winner">' : '<tr>') +
             '<td>' + candidate  + '</td><td class="right">' +
             _.str.numberFormat(votes) + '</td><td class="right">' + percent + '%</td></tr>';
     });
